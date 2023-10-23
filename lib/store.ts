@@ -7,6 +7,7 @@ type State = {
 
 type Action = {
 	addFiles: (newFiles: DroppedFiles[]) => void;
+	updateFile: (id: string, convertTo: string) => void;
 	removeFiles: (id: string) => void;
 	removeAll: () => void;
 };
@@ -16,6 +17,17 @@ export const useFCStore = create<State & Action>(set => ({
 	addFiles: newFile => {
 		set(state => {
 			return { files: [...state.files, ...newFile] };
+		});
+	},
+	updateFile: (id, convertTo) => {
+		set(state => {
+			const updatedFiles = state.files.map(file => {
+				if (file.id === id) {
+					return { ...file, to: convertTo };
+				}
+				return file;
+			});
+			return { files: updatedFiles };
 		});
 	},
 	removeFiles: id => {
