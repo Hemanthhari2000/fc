@@ -5,8 +5,10 @@ export type DroppedFiles = {
 	from: string;
 	to: string | null;
 	filetype: string;
-	file: unknown;
+	file: File;
 	isConverted: boolean;
 	isConverting: boolean;
 	isError: boolean;
+	url?: string;
+	output?: string;
 };

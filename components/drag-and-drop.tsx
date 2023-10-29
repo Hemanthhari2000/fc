@@ -1,16 +1,29 @@
 'use client';
 
 import { IconCloudUpload, IconFileSymlink } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import Dropzone from 'react-dropzone';
 import { DroppedFiles } from './types';
 import { useFCStore } from '@/lib/store';
 import FileList from './file-list';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import loadFfmpeg from '@/lib/load-ffmpeg';
+import { Skeleton } from './ui/skeleton';
+import ffmpegConvert from '@/lib/convert-ffmpeg';
 
 const DragAndDrop = () => {
 	const [isFileHover, setIsFileHover] = useState<boolean>(false);
-	const { files, addFiles } = useFCStore();
+	const [isFFMPEGLoaded, setIsFFMPEGLoaded] = useState<boolean>(false);
+	const ffmpegRef = useRef<FFmpeg>();
+
+	const {
+		files,
+		addFiles,
+		updateFile_setIsConverting,
+		updateFile_setURLandOuput,
+		updateFile_setError
+	} = useFCStore();
 
 	const handleFileUpload = (data: File[]): void => {
 		handleExitHover();
@@ -34,8 +47,57 @@ const DragAndDrop = () => {
 
 	const handleEnterHover = () => setIsFileHover(true);
 	const handleExitHover = () => setIsFileHover(false);
+
+	useEffect(() => {
+		loadFFMPEG();
+	}, []);
+
+	const loadFFMPEG = async () => {
+		const ffmpeg_res: FFmpeg = await loadFfmpeg();
+		ffmpegRef.current = ffmpeg_res;
+		setIsFFMPEGLoaded(true);
+	};
+
+	const handleDownload = (file: DroppedFiles) => {
+		const downloadLink = document.createElement('a');
+		downloadLink.style.display = 'none';
+		downloadLink.href = file.url!;
+		downloadLink.download = file.output!;
+		document.body.appendChild(downloadLink);
+		downloadLink.click();
+		URL.revokeObjectURL(file.url!);
+		document.body.removeChild(downloadLink);
+	};
+
+	const handleConvertFiles = () => {
+		updateFile_setIsConverting(true);
+
+		files.map(async file => {
+			try {
+				const { url, outputFile } = await ffmpegConvert(
+					ffmpegRef.current!,
+					file
+				);
+				updateFile_setURLandOuput({
+					id: file.id,
+					url: url,
+					output: outputFile
+				});
+				updateFile_setIsConverting(false, file.id);
+			} catch (error) {
+				updateFile_setError(file.id, true);
+				updateFile_setIsConverting(false, file.id, true);
+			}
+		});
+	};
+
 	return files.length ? (
-		<FileList />
+		<FileList
+			handleConvertFiles={handleConvertFiles}
+			handleDownload={handleDownload}
+		/>
+	) : !isFFMPEGLoaded ? (
+		<Skeleton className="h-96 max-w-4xl lg:max-w-6xl 2xl:max-w-7xl cursor-progress rounded-3xl" />
 	) : (
 		<Dropzone
 			onDrop={handleFileUpload}

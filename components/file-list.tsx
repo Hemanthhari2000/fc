@@ -1,19 +1,35 @@
 'use client';
 
 import { bytesToSize, filetypeToLogo, limitFilename } from '@/lib/utils';
-import { IconSquareRoundedX } from '@tabler/icons-react';
+import {
+	IconDownload,
+	IconReload,
+	IconSquareRoundedX
+} from '@tabler/icons-react';
 import { DroppedFiles } from './types';
 import { useFCStore } from '@/lib/store';
 import ConvertToDropDown from './convert-to-drop-down';
 import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { useState } from 'react';
 
-const FileList = () => {
-	const { files, removeFiles, updateFile } = useFCStore();
+const FileList = ({
+	handleConvertFiles,
+	handleDownload
+}: {
+	handleConvertFiles: () => void;
+	handleDownload: (file: DroppedFiles) => void;
+}) => {
+	const [isFilesProcessed, setIsFilesProcessed] = useState(false);
+
+	const { files, removeFiles, updateFile_convertTo } = useFCStore();
+
 	const handleItemClose = (id: string) => {
 		removeFiles(id);
 	};
+
 	const handleItemUpdate = (id: string, convertTo: string) => {
-		updateFile(id, convertTo);
+		updateFile_convertTo(id, convertTo);
 	};
 
 	return (
@@ -26,15 +42,27 @@ const FileList = () => {
 							file={file}
 							onItemClose={handleItemClose}
 							onItemUpdate={handleItemUpdate}
+							onItemDownload={handleDownload}
 						/>
 					);
 				})}
 			</div>
 			<div className="mt-4 self-end">
 				<Button
-					className="px-10 py-6 text-lg font-semibold"
-					// onClick={() => console.log(files)}
+					size={'lg'}
+					className="text-lg font-semibold"
+					onClick={() => {
+						setIsFilesProcessed(true);
+						setTimeout(() => {
+							handleConvertFiles();
+							setIsFilesProcessed(false);
+						});
+					}}
+					disabled={isFilesProcessed}
 				>
+					{isFilesProcessed ? (
+						<IconReload className="mr-2 h-4 w-4 animate-spin" />
+					) : null}
 					Convert
 				</Button>
 			</div>
@@ -46,8 +74,9 @@ const FileListItem = (props: {
 	file: DroppedFiles;
 	onItemClose: (id: string) => void;
 	onItemUpdate: (id: string, convertTo: string) => void;
+	onItemDownload: (file: DroppedFiles) => void;
 }) => {
-	const { file, onItemClose, onItemUpdate } = props;
+	const { file, onItemClose, onItemUpdate, onItemDownload } = props;
 	return (
 		<div className="h-fit px-4 md:px-12 lg:px-16 py-4 rounded-md border-gray-300 border-2 dark:border-gray-500 flex justify-between items-center flex-wrap lg:flex-nowrap cursor-pointer">
 			<div className="flex gap-4 items-center mb-4 md:mb-0">
@@ -66,7 +95,21 @@ const FileListItem = (props: {
 					</span>
 				</div>
 			</div>
-			<ConvertToDropDown file={file} onItemUpdate={onItemUpdate} />
+			{file.isConverting ? (
+				<Badge className="bg-yellow-400 text-white">Converting</Badge>
+			) : file.isConverted ? (
+				<div className="w-24 flex justify-between">
+					<Badge className="bg-green-400 text-white">Done</Badge>
+					<IconDownload
+						className="h-[1.5rem] w-[1.5rem] cursor-pointer hover:ring-2 hover:rounded-lg"
+						onClick={() => onItemDownload(file)}
+					/>
+				</div>
+			) : file.isError ? (
+				<Badge className="bg-red-400 text-white">Error</Badge>
+			) : (
+				<ConvertToDropDown file={file} onItemUpdate={onItemUpdate} />
+			)}
 			<div>
 				<IconSquareRoundedX
 					className="h-[1.75rem] w-[1.75rem] cursor-pointer hover:ring-2 hover:rounded-lg"
