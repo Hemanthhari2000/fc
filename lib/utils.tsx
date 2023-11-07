@@ -1,3 +1,4 @@
+import { accepted_files } from '@/components/constants';
 import {
 	IconPhoto,
 	IconPhotoFilled,
@@ -44,4 +45,15 @@ export const filetypeToLogo = (filetype: string): JSX.Element => {
 		default:
 			return <IconPhotoFilled />;
 	}
+};
+
+export const tooltipAcceptedFiles = (): string => {
+	let tooltipText = `Accepted files are: ${accepted_files['image/*']}`;
+	if (
+		accepted_files['video/*'].length > 0 &&
+		accepted_files['audio/*'].length > 0
+	) {
+		tooltipText += `,${accepted_files['video/*']}, ${accepted_files['audio/*']}`;
+	}
+	return tooltipText;
 };

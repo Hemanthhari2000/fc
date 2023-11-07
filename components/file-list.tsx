@@ -12,6 +12,7 @@ import ConvertToDropDown from './convert-to-drop-down';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useState } from 'react';
+import Tooltip from './tooltip';
 
 const FileList = ({
 	handleConvertFiles,
@@ -78,16 +79,11 @@ const FileListItem = (props: {
 }) => {
 	const { file, onItemClose, onItemUpdate, onItemDownload } = props;
 	return (
-		<div className="h-fit px-4 md:px-12 lg:px-16 py-4 rounded-md border-gray-300 border-2 dark:border-gray-500 flex justify-between items-center flex-wrap lg:flex-nowrap cursor-pointer">
+		<div className="h-fit px-4 md:px-12 lg:px-16 py-4 rounded-md border-gray-300 border-2 dark:border-gray-500 flex justify-between items-center flex-wrap lg:flex-nowrap">
 			<div className="flex gap-4 items-center mb-4 md:mb-0">
 				<div className="flex items-center gap-2 w-64 md:w-80 lg:w-96">
 					<span>{filetypeToLogo(file.filetype)}</span>
-					<span className="group relative">
-						{limitFilename(file.filename)}
-						<span className="absolute hidden group-hover:flex -left-5 -top-2 -translate-y-full w-fit px-3 py-1 bg-gray-600 dark:bg-gray-200 rounded-md text-center text-white dark:text-black justify-center text-sm font-medium after:content-[''] after:absolute after:left-1/2 after:top-[100%] after:-translate-x-1/2 after:border-8 after:border-x-transparent after:border-b-transparent after:border-t-gray-600 dark:after:border-t-gray-200">
-							{file.filename}
-						</span>
-					</span>
+					<Tooltip text={file.filename}>{limitFilename(file.filename)}</Tooltip>
 					<span>
 						<span className="items-center font-medium text-xs text-gray-400">
 							({bytesToSize(file.filesize)})

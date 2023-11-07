@@ -4,6 +4,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Navbar from '@/components/Navbar';
+import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
 					<div className="pt-8 min-h-screen md:pt-32 lg:pt-36 2xl:pt-44 container max-w-4xl lg:max-w-6xl 2xl:max-w-7xl">
 						{children}
 					</div>
+					<Toaster />
 				</ThemeProvider>
 			</body>
 		</html>
